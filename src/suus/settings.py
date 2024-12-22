@@ -53,6 +53,7 @@ INSTALLED_APPS = [
     # 3rd party
     "django_htmx",
     # internal
+    "suus_site",
     "suus_utils",
 ]
 
