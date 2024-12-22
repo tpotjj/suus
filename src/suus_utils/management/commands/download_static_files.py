@@ -5,7 +5,7 @@ from typing import Any, List
 from django.conf import settings
 from django.core.management.base import BaseCommand
 
-from butlai_utils.downloader import download_to_local
+from suus_utils.downloader import download_to_local
 
 
 @dataclass
