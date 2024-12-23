@@ -37,7 +37,7 @@ ALLOWED_HOSTS = config(
 ).split(",")
 CSRF_TRUSTED_ORIGINS = config(
     "CSRF_TRUSTED_ORIGINS",
-    default="http://127.0.0.1,http://localhost,http://localhost:5500",
+    default="http://127.0.0.1,http://localhost",
 ).split(",")
 
 
