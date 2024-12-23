@@ -1,11 +1,11 @@
 from dataclasses import dataclass
 from datetime import date
 from typing import Dict, List, Optional
+
 from django.conf import settings
 from pydantic import BaseModel, Field
 from pydantic_ai import Agent, RunContext
 from pydantic_ai.models.openai import OpenAIModel
-
 
 gpt_35_turbo = OpenAIModel(
     "gpt-3.5-turbo",
@@ -49,8 +49,8 @@ agent_suus = Agent(
 def schrijf_gedicht_alinea() -> AgentSuusResult:
     """Schrijf een gedicht alinea."""
     return AgentSuusResult(
-        line_1="Eerst regel van het gedicht (A)", 
-        line_2="Tweede regel van het gedicht (A)", 
-        line_3="Derde regel van het gedicht (B)", 
-        line_4="Vierde regel van het gedicht (B)"
+        line_1="Eerst regel van het gedicht (A)",
+        line_2="Tweede regel van het gedicht (A)",
+        line_3="Derde regel van het gedicht (B)",
+        line_4="Vierde regel van het gedicht (B)",
     )
