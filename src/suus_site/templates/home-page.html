@@ -20,6 +20,7 @@
             const snowflakes = [];
             const clickedIcons = new Set();
             let iconDisplayInterval;
+            const activeIcons = new Set(); // Keep track of currently active icons
 
             const poemLines = [
                 "Aller liefste Suus,",
@@ -40,11 +41,11 @@
                 },
                 {
                     path: "{% static 'images/rose.png' %}",
-                    description: "Suus drink graag een lekker rosetje, van lichte kleur en een frisse afdronk, in de warme dagen met een blokje ijs. In combinatie met een lekker hammetje, oestertje, caviaar of wat anders lekkers. "
+                    description: "Suus drink graag een lekker rosetje, van lichte kleur en een frisse afdronk, in de warme dagen met een blokje ijs. In combinatie met een lekker hammetJe, oestertje, caviaar of wat anders lekkers. "
                 },
                 {
                     path: "{% static 'images/loes.png' %}",
-                    description: "Loesje. Een ruwharige teckel die gek is op Suus, maar idolaat van Leon. Een ontzettende knuffelkont die maar al te graag aandacht, koekjes en wandelingen krijgt"
+                    description: "Loesje. Een ruwharige teckel die gek is op Suus, maar idolaat van Leon. Een ontzettende knuffelkont die maar al te graag aandacht, koekjes en wandelingen krijgt. Ze staat 's ochtends al vroeg aan het bed, dan wil ze al graag naar buiten voor een poepje en een plasje en brokjes"
                 },
                 {
                     path: "{% static 'images/leon-suus.png' %}",
@@ -93,7 +94,7 @@
                 clearInterval(iconDisplayInterval);
 
                 iconDisplayInterval = setInterval(() => {
-                    const unclickedIcons = icons.filter(icon => !clickedIcons.has(icon.path));
+                    const unclickedIcons = icons.filter(icon => !clickedIcons.has(icon.path) && !activeIcons.has(icon.path)); // Filter out active icons
 
                     if (unclickedIcons.length > 0 && isTabActive) {
                         const randomIndex = Math.floor(Math.random() * unclickedIcons.length);
@@ -109,6 +110,7 @@
 
                 iconElement.style.animation += ", fadeOut 1s linear forwards";
                 clickedIcons.add(iconObj.path);
+                activeIcons.delete(iconObj.path); // Remove from active icons when clicked
                 iconElement.style.pointerEvents = "none";
 
                 try {
@@ -145,7 +147,7 @@
             }
 
             function displaySingleIcon(iconObj) {
-                if (clickedIcons.has(iconObj.path)) return;
+                if (clickedIcons.has(iconObj.path) || activeIcons.has(iconObj.path)) return; // Check if active
 
                 const { path, description } = iconObj;
 
@@ -157,11 +159,13 @@
                 iconElement.addEventListener("click", () => handleIconClick(iconObj, iconElement));
 
                 document.body.appendChild(iconElement);
+                activeIcons.add(iconObj.path); // Add to active icons
                 iconElement.style.animation = "text-fall 10s linear forwards";
 
                 setTimeout(() => {
                     if (!clickedIcons.has(path) && !document.hidden) {
                         iconElement.remove();
+                        activeIcons.delete(path); // Remove from active icons if not clicked
                     }
                 }, 10000);
             }
