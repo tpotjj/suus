@@ -16,8 +16,15 @@ gpt_35_turbo = OpenAIModel(
 class AgentSuusResult(BaseModel):
     line_1: str = Field(description="Eerst regel van het gedicht (A)")
     line_2: str = Field(description="Tweede regel van het gedicht (A)")
-    line_3: str = Field(description="Derde regel van het gedcht (B)")
+    line_3: str = Field(description="Derde regel van het gedicht (B)")
     line_4: str = Field(description="Vierde regel van het gedicht (B)")
+
+
+@dataclass
+class AgentSuusDependencies:
+    prompt: str = Field(
+        description="Informatie die de gebruiker heeft gegeven om een gedicht te schrijven."
+    )
 
 
 agent_suus = Agent(
@@ -31,15 +38,19 @@ agent_suus = Agent(
         "en de derde en vierde regel rijmen met elkaar. "
         "Zorg ervoor dat de regels goed bij elkaar passen en "
         "dat het gedicht een mooi geheel vormt. "
-        "Doe je best om de eerste tween regels te laten rijmen, "
-        "en de laatste twee regels ook te laten rijmen. "
         "Spreek altijd in de vorm van een gedicht, "
-        "en maak gebruik van mooie woorden en zinnen. "
+        "en maak gebruik van mooie & volwassen woorden en zinnen."
+        "Het gedicht mag niet al te kinderlijk gemaakt zijn."
     ),
 )
 
 
-@agent_suus.tool
+@agent_suus.tool_plain
 def schrijf_gedicht_alinea() -> AgentSuusResult:
     """Schrijf een gedicht alinea."""
-    return "Schrijf een gedicht in het Nederlands."
+    return AgentSuusResult(
+        line_1="Eerst regel van het gedicht (A)", 
+        line_2="Tweede regel van het gedicht (A)", 
+        line_3="Derde regel van het gedicht (B)", 
+        line_4="Vierde regel van het gedicht (B)"
+    )

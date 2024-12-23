@@ -1,0 +1,127 @@
+body,
+html {
+    margin: 0;
+    padding: 0;
+    background-color: rgba(20, 20, 25, 1);
+}
+
+body,
+html {
+    overflow-x: hidden;
+    width: 100vw;
+    height: auto;
+}
+
+.snow-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    overflow: hidden;
+    width: 100vw;
+    height: 100vh;
+    z-index: 99999;
+    pointer-events: none;
+}
+
+.snowflake {
+    position: absolute;
+    background-color: white;
+    border-radius: 50%;
+    opacity: 0.8;
+    pointer-events: none;
+}
+
+
+@keyframes fall {
+    0% {
+        opacity: 0;
+        transform: translateY(0);
+    }
+    10% {
+        opacity: 1;
+    }
+    100% {
+        opacity: 0.5;
+        transform: translateY(100vh);
+    }
+}
+
+@keyframes diagonal-fall {
+    0% {
+        opacity: 0;
+        transform: translate(0, 0);
+    }
+    10% {
+        opacity: 1;
+    }
+    100% {
+        opacity: 0.25;
+        transform: translate(10vw, 100vh);
+    }
+}
+
+.poem-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    pointer-events: none;
+    overflow: hidden;
+    z-index: 9999;
+}
+
+.falling-line {
+    position: absolute;
+    top: -10%;
+    font-size: 1.7rem;
+    font-weight: bold;
+    color: white;
+    opacity: 0.8;
+    white-space: normal;
+    word-wrap: break-word;
+    max-width: 90%;
+    padding: 0 5vw;
+    margin: 0 auto;
+    text-align: center;
+    animation: text-fall 10s linear forwards;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+
+.falling-icon {
+    position: absolute;
+    max-height: 50px;
+    width: auto;
+    pointer-events: auto;
+    cursor: pointer;
+}
+
+@keyframes text-fall {
+    0% {
+        transform: translateY(0);
+        opacity: 0;
+    }
+    10% {
+        opacity: 1;
+    }
+    100% {
+        transform: translateY(110vh);
+        opacity: 0;
+    }
+}
+
+  .fade-out {
+    animation: fadeOut 1s forwards ease-in;
+    pointer-events: none;
+  }
+  
+  @keyframes fadeOut {
+    0% {
+      opacity: 1;
+    }
+    100% {
+      opacity: 0;
+    }
+  }

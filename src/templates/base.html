@@ -3,19 +3,15 @@
 <html>
     <head>
         {% include 'base/header.html' %}
-        {% include 'base/css.html' %}
         <!-- Overwritable blocks must be located in the root -->
-        <title>{% block page_title %} Suus | {% endblock page_title %}</title>
-
-        <meta property="og:title" content="{% block og_title %} Suus | {% endblock %}">
-        <meta property="og:description" content="{% block og_description %} AI powered personal assistant {% endblock %}">
+        <title>{% block page_title %} Suus {% endblock page_title %}</title>
+        {% block css %}{% endblock css %}
+        <meta property="og:title" content="{% block og_title %} Suus {% endblock %}">
     </head>
     <body class="bg-gray-900">
         {% block content %}
         {% endblock content %}
-        {% if messages %}
-            {% include 'base/messages.html' %}
-        {% endif %}
+
         {% include 'base/js.html' %}
     </body>
 </html>
