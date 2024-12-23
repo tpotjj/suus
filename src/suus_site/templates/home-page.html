@@ -5,7 +5,6 @@
     <link rel="stylesheet" type="text/css" href="{% static 'css/home-page.css' %}">
 {% endblock css %}
 
-
 {% block content %}
     <div class="snow-container"></div>
     <div class="poem-container"></div>
@@ -14,13 +13,14 @@
         document.addEventListener("DOMContentLoaded", function () {
             const snowContainer = document.querySelector(".snow-container");
             const poemContainer = document.querySelector(".poem-container");
-        
+
             const particlesPerThousandPixels = 0.1;
-            const fallSpeed = 0.75;
+            const fallSpeed = 0.6;
             const maxSnowflakes = 200;
             const snowflakes = [];
             const clickedIcons = new Set();
-        
+            let iconDisplayInterval;
+
             const poemLines = [
                 "Aller liefste Suus,",
                 "De papieren gedichten zullen al snel vergaan,",
@@ -29,6 +29,8 @@
                 "geen zorgen, dit kan met een glas wijn vanuit je luie stoel, heerlijk.",
                 "Zie hoe op het scherm, iconen neerdwarrelen als in een winters tafereel,",
                 "Klik op de iconen en genereer het gedicht manueel.",
+                "Sommige iconen gaan bliksemsnel,"
+                "Geen zorgen, ze blijven zitten in de carrousel."
             ];
 
             let icons = [
@@ -36,198 +38,151 @@
                     path: "{% static 'images/renesse.png' %}",
                     description: "Suus gaat graag naar Renesse, een weekend, een week of zelfs meer. Met Ger en Guus als buren is dat altijd een feestje & gezellig. Op het strand wandelen met Loes, zonnen bij de kotjes of fietsen zijn o.a. activiteiten die ze graag doen. Daarnaast gaan ze ook graag een lekker hapje eten bij de nodige leuke restaurantjes in Renesse en omgeving."
                 },
+                {
+                    path: "{% static 'images/rose.png' %}",
+                    description: "Suus drink graag een lekker rosetje, van lichte kleur en een frisse afdronk, in de warme dagen met een blokje ijs. In combinatie met een lekker hammetje, oestertje, caviaar of wat anders lekkers. "
+                },
+                {
+                    path: "{% static 'images/loes.png' %}",
+                    description: "Loesje. Een ruwharige teckel die gek is op Suus, maar idolaat van Leon. Een ontzettende knuffelkont die maar al te graag aandacht, koekjes en wandelingen krijgt"
+                },
+                {
+                    path: "{% static 'images/leon-suus.png' %}",
+                    description: "Leon & Suus samen, Leon is de man van Suus, soms een 'zevertinus', maar meestal een lieverd met het hard op de juiste plek."
+                },
+                {
+                    path: "{% static 'images/kerstman.png' %}",
+                    description: "De XXL Kerstman die ieder jaar voor de deur staat, een echte must-have voor de feestdagen, deze mag Leon met een busje uit de opslag halen en neerzetten, ter decoratie van de entree."
+                },
+                {
+                    path: "{% static 'images/kerstboom.png' %}",
+                    description: "Ieder jaar ook weer een prachtig gedecoreerde boom met alles er op-en-aan. Niet alleen de boom maar het gehele huis wordt omgetoverd tot een waar winterparadijs. Decoreren is uberhaupt een hobby van Suus, met ieder seizoen een nieuwe thema en dus nieuwe decoratie."
+                },
+                {
+                    path: "{% static 'images/kaars.png' %}",
+                    description: "Het huis gezellig maken, decoreren en aankleden zijn Suus haar hobbies, spullen wegdoen en declutteren daarintegen wil niet bepaald lukken. Het hele huis ziet er altijd sfeervol en warm uit, en de heerlijke geuren van een goede kaars kunnen daarin niet ontbreken"
+                },
+                {
+                    path: "{% static 'images/fleur-alain-soof-joris.png' %}",
+                    description: "Fleur, Alain, Soof en Joris, haar dochters een schoonzonen waar ze maar al te gek op is. De een in Haarlem en de ander om de hoek, "
+                },
             ];
-        
-            let currentLine = 0;
-        
-            function revealNextLine() {
-                if (currentLine < poemLines.length) {
-                    const lineElement = document.createElement("div");
-                    lineElement.textContent = poemLines[currentLine];
-                    lineElement.classList.add("falling-line");
-                    poemContainer.appendChild(lineElement);
-        
-                    lineElement.style.left = `${Math.random() * 80}vw`;
-                    currentLine++;
+
+            function displayFallingPoemLines(poemLines) {
+                let lineIndex = 0;
+
+                function revealLine() {
+                    if (lineIndex < poemLines.length) {
+                        const lineElement = document.createElement("div");
+                        lineElement.textContent = poemLines[lineIndex];
+                        lineElement.classList.add("falling-line");
+                        poemContainer.appendChild(lineElement);
+
+                        lineElement.style.left = `${Math.random() * 80}vw`;
+                        lineIndex++;
+
+                        setTimeout(revealLine, 3000);
+                    }
                 }
+
+                revealLine();
             }
-        
-            let poemInterval = setInterval(() => {
-                if (currentLine < poemLines.length) {
-                    requestAnimationFrame(revealNextLine);
-                } else {
-                    clearInterval(poemInterval);
-                    setTimeout(displayIcons, 3000);
-                }
-            }, 3000);
-        
+
+            // --- Icon Functions ---
             function displayIcons() {
-                const shuffledIcons = icons.sort(() => Math.random() - 0.5);
-            
-                shuffledIcons.forEach((icon, index) => {
-                    const iconElement = document.createElement("img");
-                    iconElement.src = icon.path;
-                    iconElement.classList.add("falling-icon");
-                    iconElement.style.left = `${Math.random() * 80}vw`;
-            
-                    iconElement.addEventListener("click", async () => {
-                        if (clickedIcons.has(icon)) {
-                            return;
-                        }
+                clearInterval(iconDisplayInterval);
 
-                        iconElement.style.animation += ", fadeOut 1s linear forwards";
+                iconDisplayInterval = setInterval(() => {
+                    const unclickedIcons = icons.filter(icon => !clickedIcons.has(icon.path));
 
-                        clickedIcons.add(icon);
-                    
-                        icons = icons.filter((item) => item !== icon);
-                    
-                        iconElement.style.pointerEvents = "none";
-
-                        try {
-                            // Make the API request
-                            const response = await fetch("get-llm-response-for-suus/", {
-                                method: "POST",
-                                headers: {
-                                    "Content-Type": "application/json",
-                                    "X-CSRFToken": getCsrfToken(),
-                                },
-                                body: JSON.stringify({
-                                    prompt: icon.description,
-                                }),
-                            });
-                    
-                            if (!response.ok) {
-                                throw new Error(`HTTP error! status: ${response.status}`);
-                            }
-                    
-                            const responseData = await response.json();
-                            console.log("RESPONSE DATA: ", responseData);
-                    
-                            const poemLines = responseData.poem_lines;
-                    
-                            if (poemLines) {
-                                console.log("Poem Lines:", poemLines.join("\n")); 
-                                // Display them if you wish
-                                const poemElement = document.createElement("div");
-                                poemElement.classList.add("poem");
-                                poemElement.textContent = poemLines.join("\n");
-                                document.body.appendChild(poemElement);
-                            } else {
-                                console.error("No poem lines found in the response!");
-                            }
-                    
-                        } catch (error) {
-                            console.error("Error fetching the poem:", error);
-                        }
-                    });
-            
-                    document.body.appendChild(iconElement);
-                    iconElement.style.animation = "text-fall 10s linear forwards";
-            
-                    // Repeat displaying logic if not clicked, etc.
-                    setTimeout(() => {
-                        if (icons.includes(icon) && !document.hidden) {
-                            displaySingleIcon(icon);
-                        }
-                    }, 10000);
-                });
+                    if (unclickedIcons.length > 0 && isTabActive) {
+                        const randomIndex = Math.floor(Math.random() * unclickedIcons.length);
+                        displaySingleIcon(unclickedIcons[randomIndex]);
+                    } else if (unclickedIcons.length === 0) {
+                        clearInterval(iconDisplayInterval);
+                    }
+                }, 3000);
             }
-            
-        
+
+            async function handleIconClick(iconObj, iconElement) {
+                if (clickedIcons.has(iconObj.path)) return;
+
+                iconElement.style.animation += ", fadeOut 1s linear forwards";
+                clickedIcons.add(iconObj.path);
+                iconElement.style.pointerEvents = "none";
+
+                try {
+                    const response = await fetch("/get-llm-response-for-suus/", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                            "X-CSRFToken": getCsrfToken(),
+                        },
+                        body: JSON.stringify({
+                            prompt: iconObj.description,
+                        }),
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+
+                    const responseData = await response.json();
+                    const newPoemLines = responseData.poem_lines;
+
+                    if (newPoemLines) {
+                        displayFallingPoemLines(newPoemLines);
+                    } else {
+                        console.error("No poem lines found in the response!");
+                    }
+
+                    iconElement.addEventListener("animationend", () => {
+                        iconElement.remove();
+                    });
+                } catch (error) {
+                    console.error("Error fetching the poem:", error);
+                }
+            }
+
             function displaySingleIcon(iconObj) {
+                if (clickedIcons.has(iconObj.path)) return;
+
                 const { path, description } = iconObj;
 
                 const iconElement = document.createElement("img");
                 iconElement.src = path;
                 iconElement.classList.add("falling-icon");
                 iconElement.style.left = `${Math.random() * 80}vw`;
-            
-                iconElement.addEventListener("click", async () => {
-                    // If already clicked, bail out
-                    if (clickedIcons.has(iconObj)) {
-                        return;
-                    }
 
-                    iconElement.style.animation += ", fadeOut 1s linear forwards";
+                iconElement.addEventListener("click", () => handleIconClick(iconObj, iconElement));
 
-                    // Mark icon as clicked
-                    clickedIcons.add(iconObj);
-                
-                    icons = icons.filter((item) => item !== iconObj);
-                
-                    iconElement.style.pointerEvents = "none";
-
-                    try {
-                        // Make the API request with the description as part of the prompt
-                        const response = await fetch("/get-llm-response-for-suus/", {
-                            method: "POST",
-                            headers: {
-                                "Content-Type": "application/json",
-                                "X-CSRFToken": getCsrfToken(),
-                            },
-                            body: JSON.stringify({
-                                prompt: description,
-                            }),
-                        });
-            
-                        if (!response.ok) {
-                            throw new Error(`HTTP error! status: ${response.status}`);
-                        }
-            
-                        const responseData = await response.json();
-            
-                        const poemLines = responseData.poem_lines;
-            
-                        if (poemLines) {
-                            console.log("Poem Lines:", poemLines.join("\n"));
-                            const poemElement = document.createElement("div");
-                            poemElement.classList.add("poem");
-                            poemElement.textContent = poemLines.join("\n");
-                            document.body.appendChild(poemElement);
-                        } else {
-                            console.error("No poem lines found in the response!");
-                        }
-            
-                        iconElement.addEventListener("animationend", () => {
-                            iconElement.remove();
-                        });
-            
-                        clickedIcons.add(path);
-                    } catch (error) {
-                        console.error("Error fetching the poem:", error);
-                    }
-                });
-            
                 document.body.appendChild(iconElement);
                 iconElement.style.animation = "text-fall 10s linear forwards";
-            
+
                 setTimeout(() => {
                     if (!clickedIcons.has(path) && !document.hidden) {
-                        displaySingleIcon(iconObj);
+                        iconElement.remove();
                     }
                 }, 10000);
             }
-            
-        
-            let snowflakeInterval;
-            let isTabActive = true;
-        
+
+            // --- Snowflake Functions ---
+
             function resetSnowflake(snowflake) {
                 const size = Math.random() * 5 + 1;
                 const viewportWidth = window.innerWidth - size;
                 const viewportHeight = window.innerHeight;
-        
+
                 snowflake.style.width = `${size}px`;
                 snowflake.style.height = `${size}px`;
                 snowflake.style.left = `${Math.random() * viewportWidth}px`;
                 snowflake.style.top = `-${size}px`;
-        
+
                 const animationDuration = (Math.random() * 3 + 2) / fallSpeed;
                 snowflake.style.animationDuration = `${animationDuration}s`;
                 snowflake.style.animationTimingFunction = "linear";
-                snowflake.style.animationName =
-                    Math.random() < 0.5 ? "fall" : "diagonal-fall";
-        
+                snowflake.style.animationName = Math.random() < 0.5 ? "fall" : "diagonal-fall";
+
                 setTimeout(() => {
                     if (parseInt(snowflake.style.top, 10) < viewportHeight) {
                         resetSnowflake(snowflake);
@@ -236,7 +191,7 @@
                     }
                 }, animationDuration * 1000);
             }
-        
+
             function createSnowflake() {
                 if (snowflakes.length < maxSnowflakes) {
                     const snowflake = document.createElement("div");
@@ -246,13 +201,11 @@
                     resetSnowflake(snowflake);
                 }
             }
-        
+
             function generateSnowflakes() {
-                const numberOfParticles =
-                    Math.ceil((window.innerWidth * window.innerHeight) / 1000) *
-                    particlesPerThousandPixels;
+                const numberOfParticles = Math.ceil((window.innerWidth * window.innerHeight) / 1000) * particlesPerThousandPixels;
                 const interval = 5000 / numberOfParticles;
-        
+
                 clearInterval(snowflakeInterval);
                 snowflakeInterval = setInterval(() => {
                     if (isTabActive && snowflakes.length < maxSnowflakes) {
@@ -260,12 +213,30 @@
                     }
                 }, interval);
             }
-        
+
+            // --- Initialization & Event Listeners ---
+
+            let snowflakeInterval;
+            let isTabActive = true;
+
+            displayFallingPoemLines(poemLines);
+            setTimeout(displayIcons, (poemLines.length + 1) * 3000);
+
             generateSnowflakes();
-        
+
             window.addEventListener("resize", () => {
                 clearInterval(snowflakeInterval);
                 setTimeout(generateSnowflakes, 1000);
+            });
+
+            // Handle tab visibility changes
+            document.addEventListener("visibilitychange", () => {
+                isTabActive = !document.hidden;
+                if (isTabActive) {
+                    generateSnowflakes();
+                } else {
+                    clearInterval(snowflakeInterval);
+                }
             });
         });
 
@@ -276,5 +247,5 @@
                 .find(cookie => cookie.startsWith("csrftoken="));
             return csrfToken ? csrfToken.split("=")[1] : null;
         }
-      </script>
+    </script>
 {% endblock content %}

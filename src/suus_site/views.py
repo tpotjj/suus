@@ -31,8 +31,6 @@ class GetLLMResponseForSuus(View):
                 result.data.line_4,
             ]
 
-            print("RESULT", poem_lines)
-
             return JsonResponse(
                 {"status": "success", "poem_lines": poem_lines}, status=200
             )

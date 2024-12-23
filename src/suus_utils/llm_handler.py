@@ -41,6 +41,7 @@ agent_suus = Agent(
         "Gebruik volwassen taalgebruik en vermijd kinderlijke woorden of zinnen. "
         "Zorg dat de regels samenhangend zijn en een vloeiend, betekenisvol gedicht vormen. "
         "Je antwoordt **uitsluitend** in de vorm van het gedicht, zonder verdere toelichting."
+        "Het gedicht dat je schrijft is aan Suzanne, ofwel; Suus."
     ),
 )
 
