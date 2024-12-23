@@ -11,7 +11,7 @@ GET_LLM_RESPONSE_FOR_SUUS_NAME = "get-llm-response-for-suus"
 
 class HomePage(View):
     def get(self, request):
-        return render(request, "home-page.html")
+        return render(request, "home-page.html", {})
     
 
 class GetLLMResponseForSuus(View):
