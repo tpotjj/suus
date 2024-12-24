@@ -20,7 +20,9 @@
             const snowflakes = [];
             const clickedIcons = new Set();
             let iconDisplayInterval;
-            const activeIcons = new Set(); // Keep track of currently active icons
+            const activeIcons = new Set();
+            const poemQueue = [];
+            let isDisplayingPoem = false;
 
             const poemLines = [
                 "Aller liefste Suus,",
@@ -41,7 +43,7 @@
                 },
                 {
                     path: "{% static 'images/rose.png' %}",
-                    description: "Suus drink graag een lekker rosetje, van lichte kleur en een frisse afdronk, in de warme dagen met een blokje ijs. In combinatie met een lekker hammetJe, oestertje, caviaar of wat anders lekkers. "
+                    description: "Suus drink graag een lekker rosetje, van lichte kleur en een frisse afdronk, in de warme dagen met een blokje ijs. In combinatie met een lekker hammetJe, oestertJe, caviaar of wat anders lekkers. "
                 },
                 {
                     path: "{% static 'images/loes.png' %}",
@@ -65,12 +67,13 @@
                 },
                 {
                     path: "{% static 'images/fleur-alain-soof-joris.png' %}",
-                    description: "Fleur, Alain, Soof en Joris, haar dochters een schoonzonen waar ze maar al te gek op is. De een in Haarlem en de ander om de hoek, "
+                    description: "Fleur & Soof zijn haar dochters, Alain & Joris de schoonzonen. Fleur & Alain wonen in Haarlem met een hond en wat katten. Sophie & Joris wonen om de hoek met twee teckels. "
                 },
             ];
 
             function displayFallingPoemLines(poemLines) {
                 let lineIndex = 0;
+                isDisplayingPoem = true;
 
                 function revealLine() {
                     if (lineIndex < poemLines.length) {
@@ -83,6 +86,10 @@
                         lineIndex++;
 
                         setTimeout(revealLine, 3000);
+                    } else {
+                        isDisplayingPoem = false;
+                        // Check if there are more poems in the queue
+                        processPoemQueue(); 
                     }
                 }
 
@@ -94,13 +101,11 @@
                 clearInterval(iconDisplayInterval);
 
                 iconDisplayInterval = setInterval(() => {
-                    const unclickedIcons = icons.filter(icon => !clickedIcons.has(icon.path) && !activeIcons.has(icon.path)); // Filter out active icons
+                    const unclickedIcons = icons.filter(icon => !clickedIcons.has(icon.path) && !activeIcons.has(icon.path));
 
                     if (unclickedIcons.length > 0 && isTabActive) {
                         const randomIndex = Math.floor(Math.random() * unclickedIcons.length);
                         displaySingleIcon(unclickedIcons[randomIndex]);
-                    } else if (unclickedIcons.length === 0) {
-                        clearInterval(iconDisplayInterval);
                     }
                 }, 3000);
             }
@@ -110,44 +115,21 @@
 
                 iconElement.style.animation += ", fadeOut 1s linear forwards";
                 clickedIcons.add(iconObj.path);
-                activeIcons.delete(iconObj.path); // Remove from active icons when clicked
+                activeIcons.delete(iconObj.path);
                 iconElement.style.pointerEvents = "none";
 
-                try {
-                    const response = await fetch("/get-llm-response-for-suus/", {
-                        method: "POST",
-                        headers: {
-                            "Content-Type": "application/json",
-                            "X-CSRFToken": getCsrfToken(),
-                        },
-                        body: JSON.stringify({
-                            prompt: iconObj.description,
-                        }),
-                    });
+                iconElement.addEventListener("animationend", () => {
+                    iconElement.remove();
+                });
 
-                    if (!response.ok) {
-                        throw new Error(`HTTP error! status: ${response.status}`);
-                    }
-
-                    const responseData = await response.json();
-                    const newPoemLines = responseData.poem_lines;
-
-                    if (newPoemLines) {
-                        displayFallingPoemLines(newPoemLines);
-                    } else {
-                        console.error("No poem lines found in the response!");
-                    }
-
-                    iconElement.addEventListener("animationend", () => {
-                        iconElement.remove();
-                    });
-                } catch (error) {
-                    console.error("Error fetching the poem:", error);
+                poemQueue.push(iconObj); 
+                if (!isDisplayingPoem) {
+                    processPoemQueue();
                 }
             }
 
             function displaySingleIcon(iconObj) {
-                if (clickedIcons.has(iconObj.path) || activeIcons.has(iconObj.path)) return; // Check if active
+                if (clickedIcons.has(iconObj.path) || activeIcons.has(iconObj.path)) return;
 
                 const { path, description } = iconObj;
 
@@ -159,19 +141,20 @@
                 iconElement.addEventListener("click", () => handleIconClick(iconObj, iconElement));
 
                 document.body.appendChild(iconElement);
-                activeIcons.add(iconObj.path); // Add to active icons
+                activeIcons.add(iconObj.path);
                 iconElement.style.animation = "text-fall 10s linear forwards";
 
-                setTimeout(() => {
-                    if (!clickedIcons.has(path) && !document.hidden) {
+                const iconTimeout = setTimeout(() => {
+                    if (!clickedIcons.has(path)) {
                         iconElement.remove();
-                        activeIcons.delete(path); // Remove from active icons if not clicked
+                        activeIcons.delete(path);
                     }
                 }, 10000);
+
+                iconElement.addEventListener("click", () => clearTimeout(iconTimeout));
             }
 
             // --- Snowflake Functions ---
-
             function resetSnowflake(snowflake) {
                 const size = Math.random() * 5 + 1;
                 const viewportWidth = window.innerWidth - size;
@@ -218,8 +201,47 @@
                 }, interval);
             }
 
-            // --- Initialization & Event Listeners ---
+            // --- Poem Queue Functions ---
+            async function processPoemQueue() {
+                if (poemQueue.length > 0 && !isDisplayingPoem) {
+                    isDisplayingPoem = true;
+                    const iconObj = poemQueue.shift();
 
+                    try {
+                        const response = await fetch("/get-llm-response-for-suus/", {
+                            method: "POST",
+                            headers: {
+                                "Content-Type": "application/json",
+                                "X-CSRFToken": getCsrfToken(),
+                            },
+                            body: JSON.stringify({
+                                prompt: iconObj.description,
+                            }),
+                        });
+
+                        if (!response.ok) {
+                            throw new Error(`HTTP error! status: ${response.status}`);
+                        }
+
+                        const responseData = await response.json();
+                        const newPoemLines = responseData.poem_lines;
+
+                        if (newPoemLines) {
+                            displayFallingPoemLines(newPoemLines);
+                        } else {
+                            console.error("No poem lines found in the response!");
+                            isDisplayingPoem = false;
+                            processPoemQueue();
+                        }
+                    } catch (error) {
+                        console.error("Error fetching the poem:", error);
+                        isDisplayingPoem = false;
+                        processPoemQueue();
+                    }
+                }
+            }
+
+            // --- Initialization & Event Listeners ---
             let snowflakeInterval;
             let isTabActive = true;
 
@@ -233,7 +255,6 @@
                 setTimeout(generateSnowflakes, 1000);
             });
 
-            // Handle tab visibility changes
             document.addEventListener("visibilitychange", () => {
                 isTabActive = !document.hidden;
                 if (isTabActive) {
